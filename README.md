@@ -1,10 +1,11 @@
 # Personal Finance Report
 
 ### Background
-As I look to start properly budgeting and diversifying my investments, it occurred to me that there's none more suited to the task than myself - a career analyst with a brand new qualification in Power BI. So, I set myself a task of creating a personal finance report.
+As I look to start properly budgeting and diversifying my investments, it occurred to me that there's none more suited to the task than myself - a career analyst with a brand new qualification in Power BI. So, I set myself a task of creating a personal finance report. But I didn't want this to be a manual process, where I download the bank statements myself, import them into Power BI and continually do this, I figure why not automate it and make things a bit more smart. 
 
-### Goal
-Analyse outgoings data pulled from my monthly online banking statements. 
+### Goals
+1. Automate the download and ETL of my online banking statements
+2. Analyse outgoings data pulled from my monthly online banking statements. 
 ##### Questions
 * What are the regular outgoings that are consistently occuring at same time every month?
 * What outgoings seem erroneous, that could potentially be marked for cut-down?
@@ -13,3 +14,4 @@ Analyse outgoings data pulled from my monthly online banking statements.
 
 ##### Tools
 * Microsoft Power BI
+* Lloyds bank Account Information API V3
