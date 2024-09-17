@@ -5,7 +5,8 @@ As I look to start properly budgeting and diversifying my investments, it occurr
 
 ### Goals
 1. Automate the download and ETL of my banking transactions.
-2. Analyse outgoings data pulled from my banking statements. 
+2. Analyse outgoings data pulled from my banking statements.
+3. Create a database server on a Raspberry Pi that we can query from any device on the network
 #### Questions
 * What are the regular outgoings that are consistently occuring at same time every month?
 * What outgoings seem erroneous, that could potentially be marked for cut-down?
@@ -14,12 +15,13 @@ As I look to start properly budgeting and diversifying my investments, it occurr
 
 #### Tools
 * Microsoft Power BI
-* MySQL
+* MariaDB
 * Python
 * GoCardless API
+* Raspberry Pi 4 Model B
 
 ### Method
-So, obviously, this is no small project. What I am wanting to achieve is a method of automatically and periodically requesting my monthly statement or potentially just any transaction that occurs, performing some basic ETL on it to make it less all over the shop and actually useful data, storing it in a local MySQL database, then importing this into Power BI to then transform into a report with useful insights about my spending, saving and investing. 
+So, obviously, this is no small project. What I am wanting to achieve is a method of automatically and periodically requesting my monthly statement or potentially just any transaction that occurs, performing some basic ETL on it to make it less all over the shop and actually useful data, storing it in a local MariaDB database, then importing this into Power BI to then transform into a report with useful insights about my spending, saving and investing. 
 First thing I need to understand, is how a regular schmuck like myself can communicate with the Lloyds Bank API without having a business account. From what I read, I can use **GoCardless**. Some independent users report that the tokens last a "short while", but a "short while" really means 90 days, which is actually pretty standard; if you've ever used services like Plum, you'll know you need to refresh the link to your account every 90 days, so I really don't see that being a problem. Looking at the quick-start guide, it looks like I need to basically need an API key, institution ID, to then get my bank account details, and then hit a transactions endpoint to get this information. So we have a few scripts to run (which I'll include in the repo and possibly refactor to make it user friendly and more of a menu-based script where you can do it all in 1 go, the quickstart guides use cURL but I'm more of a Python and _Requests_ fella, so I rewrote it to be used in Python, so I could then later refactor as mentioned).
 The traditional JSON output in python is unformatted and awful, so we can use the _json_ library to tidy it up and format it, and after some tweaking and setting up all the keys and details, we have lift-off!
 
@@ -27,7 +29,7 @@ The traditional JSON output in python is unformatted and awful, so we can use th
 
 This is good news. It now means we can access our transactions without having to log on to the banking app or website. We'll tweak and configure this later to work how we need to, for now we'll move on.
 
-Next I need to store the data somewhere. I can't really have it just floating around the output of Visual Studio Code, so what we need to do is set up a local database. MySQL is the obvious choice. Easy enough to set up, locally (though in the future, we'll migrate it to a RaspPi or OrangePi I suspect, so I can have the DB and the script running constantly). Once we have an instance of that running locally, we'll create a schema and table:
+Next I need to store the data somewhere. I can't really have it just floating around the output of Visual Studio Code, so first thing is first, we want to test setting up a local DB and test the script works with that. At the initial time of writing, I went with MySQL server to test, but we'll be using MariaDB when it comes to the Pi. Easy enough to set up, locally. Once we have an instance of that running locally, we'll create a schema and table:
 
 ![image](https://github.com/user-attachments/assets/8b90db71-7094-4f6b-8b7f-bebdfb70cf23)
 
@@ -39,4 +41,13 @@ So, now we know we've got some data in the DB successfully. This is good news. N
 
 ![image](https://github.com/user-attachments/assets/c3437625-629e-4759-bf41-c62bf13d7e40)
 
-Seems simple enough. We need to use the datetime library in our Python script then, and then add some parameters to our json_data. And before we forget, I'm going to start this table fresh, so we'll drop all the records from it first, then reintroduce data to it with strict date/time parameters, to ensure there's no overlap or duplicate records being reinserted. 
+Seems simple enough. We need to use the datetime library in our Python script then, and then add some parameters to our json_data. And before we forget, I'm going to start this table fresh, so we'll drop all the records from it first, then reintroduce data to it with strict date/time parameters, to ensure there's no overlap or duplicate records being inserted. 
+
+Now that I'm happy my program works, we'll move on to the more complicated (for me) portion of the project. I have a Raspberry Pi 4 Model B I've had for years, just waiting to be used. I won't run through all the technical instructions and tasks I had to do to set this up, so I'll run through it in bullet points quickly.
+* Flashed an SD card with the latest Raspberry Pi OS.
+* Installed MariaDB and phpmysql (for a front end for it in case I need it)
+* Set up MariaDB in a way that I can login and access the database from outside of the Pi without having to RDP on the Pi.
+* Set up the table and it's structure.
+* Set up a Cron job for the script to run at midnight every day.
+
+That's the hardest part of this all pretty much set up, I reckon. Now we have the data, somewhere to store it, all we need to do is the actual analysis side of it. 
