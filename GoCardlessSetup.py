@@ -118,7 +118,7 @@ print("4. Build a Link")
 print("5. List Accounts")
 print("6. Account Details/balances/transactions")
 
-option = input("Pick an option /n")
+option = input("Pick an option: ")
 
 while True:
     if option == '1':
