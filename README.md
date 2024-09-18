@@ -6,7 +6,8 @@ As I look to start properly budgeting and diversifying my investments, it occurr
 ### Goals
 1. Automate the download and ETL of my banking transactions.
 2. Analyse outgoings data pulled from my banking statements.
-3. Create a database server on a Raspberry Pi that we can query from any device on the network
+3. Create a database server on a Raspberry Pi that we can query from any device on the network.
+4. Use multiple technologies to extend my knowledge in the fields of software development, database administration/SQL development, Data Engineering and Data Analysis/Business Intelligence (ish)
 #### Questions
 * What are the regular outgoings that are consistently occuring at same time every month?
 * What outgoings seem erroneous, that could potentially be marked for cut-down?
@@ -16,7 +17,9 @@ As I look to start properly budgeting and diversifying my investments, it occurr
 #### Tools
 * Microsoft Power BI
 * MariaDB
+* MotherDuck
 * Python
+* Pandas
 * GoCardless API
 * Raspberry Pi 4 Model B
 
@@ -50,4 +53,17 @@ Now that I'm happy my program works, we'll move on to the more complicated (for 
 * Set up the table and it's structure.
 * Set up a Cron job for the script to run at midnight every day.
 
-That's the hardest part of this all pretty much set up, I reckon. Now we have the data, somewhere to store it, all we need to do is the actual analysis side of it. 
+That's the hardest part of this all pretty much set up, I reckon. It's at this point in the project that I'm slightly adding to the scope of my objectives here; I like the idea of getting my teeth stuck in some more Data Engineering, so what I'd like to do is set up a data warehouse next. I figure what I can do for the ETL process is, instead of making major transformations in Power BI, I set up a MotherDuck data warehouse (they have a free plan that is perfect for what I'd need here), and look to create some sort of pipeline to clean my data, and insert it into the warehouse. Is it pointless? Yes. But the whole point of the project is to practise my current knowledge and develop new knowledge.
+
+According to the MotherDuck documentation, we can use Python to authenticate and connect to our database. So you know what I'm thinking... Another Python cronjob script. 10:20 is when we gather transaction data, 10:30 is when we can run our ETL pipeline and push the clean, useful data into MotherDuck. Especially since MotherDuck has a Power BI-friendly connector too. 
+
+There's no point setting any of this up yet until we have some transformation to perform, though. So, this is what we need to focus on next. Pandas is popular for performing transformations, so we'll use this library. 
+In Python, we need to open a connection to the MariaDB, select the data, perform some transformations and send it on its way to MotherDuck. But what transformations? Let's look at what we need:
+* Creditor name (but we will use the RemittanceInformationUnstructured for this as CreditorName has a lot of NULLS)
+* Amount
+* Booking date (value date exists, but is when the amount is actually taken out, personally I would prefer to know when it is that the money is taken)
+* Transaction code
+* Category (this is a maybe at this point in the transformation, I may leave this to a Power BI transformation as I'm not too sure how we'll be able to categorize it yet, but this will be useful to understand debits that are for savings accounts vs debits that are for costs)
+
+A consideration; Some of the creditor names differ or have numbers on them that we don't really want, so we need to clean the names up. 
+
