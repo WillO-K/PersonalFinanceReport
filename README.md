@@ -53,6 +53,13 @@ Now that I'm happy my program works, we'll move on to the more complicated (for 
 * Set up the table and it's structure.
 * Set up a Cron job for the script to run at midnight every day.
 
+Having tested the cron job, there were a few kinks to work out:
+* The INSERT statement needed to be INSERT IGNORE so I don't try to insert dupe transactions by mistake (it outputs an error anyway if it does... believe me, I learned the hard way)
+* I forgot that the bearer token only lasts 24 hours, so I had to create an additional script that hits the refresh endpoint with my refresh token, then stores the bearer token that's returned to me.
+* Set the above script to run as a cron job 5 minutes prior to the main script.
+* Modified the main script to use the new token from the additional script.
+* Fixed some dodgy bits around the date functionality.
+
 That's the hardest part of this all pretty much set up, I reckon. It's at this point in the project that I'm slightly adding to the scope of my objectives here; I like the idea of getting my teeth stuck in some more Data Engineering, so what I'd like to do is set up a data warehouse next. I figure what I can do for the ETL process is, instead of making major transformations in Power BI, I set up a MotherDuck data warehouse (they have a free plan that is perfect for what I'd need here), and look to create some sort of pipeline to clean my data, and insert it into the warehouse. Is it pointless? Yes. But the whole point of the project is to practise my current knowledge and develop new knowledge.
 
 According to the MotherDuck documentation, we can use Python to authenticate and connect to our database. So you know what I'm thinking... Another Python cronjob script. 10:20 is when we gather transaction data, 10:30 is when we can run our ETL pipeline and push the clean, useful data into MotherDuck. Especially since MotherDuck has a Power BI-friendly connector too. 
