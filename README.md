@@ -74,3 +74,10 @@ In Python, we need to open a connection to the MariaDB, select the data, perform
 
 A consideration; Some of the creditor names differ or have numbers on them that we don't really want, so we need to clean the names up. 
 
+Now, setting up the MotherDuck database was relatively straight forward, you can download an exe and use it in PowerShell to connect to your account/database and insert tables and such, so we do so to set up our stucture:
+![image](https://github.com/user-attachments/assets/3a3976b0-44b0-4e7d-912a-8a51d8563536)
+Now we have the table and basic structure of what we want to see. And we can even see it instantly update in the UI:
+![image](https://github.com/user-attachments/assets/a25617c9-52bf-4157-88f2-3b0f7cfa5148)
+
+Now we need to figure out how to connect to the makeshift data warehouse with a Python Script... Which is not a dormant skill I have, so this will be a bit of fiddling around. 
+
