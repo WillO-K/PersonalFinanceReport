@@ -75,9 +75,30 @@ In Python, we need to open a connection to the MariaDB, select the data, perform
 A consideration; Some of the creditor names differ or have numbers on them that we don't really want, so we need to clean the names up. 
 
 Now, setting up the MotherDuck database was relatively straight forward, you can download an exe and use it in PowerShell to connect to your account/database and insert tables and such, so we do so to set up our stucture:
+
 ![image](https://github.com/user-attachments/assets/3a3976b0-44b0-4e7d-912a-8a51d8563536)
+
 Now we have the table and basic structure of what we want to see. And we can even see it instantly update in the UI:
+
 ![image](https://github.com/user-attachments/assets/a25617c9-52bf-4157-88f2-3b0f7cfa5148)
 
 Now we need to figure out how to connect to the makeshift data warehouse with a Python Script... Which is not a dormant skill I have, so this will be a bit of fiddling around. 
+
+In the meantime, we'll practise our data cleaning in Power BI (because I'm too lazy/busy with other projects to fiddle about with Python/Motherduck currently), so let's import our data and create a model, which looks like this:
+
+![image](https://github.com/user-attachments/assets/92e21aec-0e7c-4efe-9071-3f963ffe8654)
+
+We'll create a date table too:
+
+![image](https://github.com/user-attachments/assets/4b95d048-fae0-4df3-98e0-07d0ca64855d)
+
+And we'll (for now) use DAX to categorise transactions based on some conditions:
+
+![image](https://github.com/user-attachments/assets/ca275381-d898-4559-87c9-cfc3f9b60777)
+
+And we'll build a few visuals and measures (not the final version, just playing with some visuals and doing some exploratory analysis:
+![image](https://github.com/user-attachments/assets/0bb7c62e-1a30-478e-89bd-129c34ed6f29)
+
+
+And we've got the rough start of a report coming along!
 
