@@ -1,13 +1,14 @@
 # Personal Finance Report
 
 ### Background
-As I look to start properly budgeting and diversifying my investments, it occurred to me that there's none more suited to the task than myself - a career analyst with a brand new qualification in Power BI. So, I set myself a task of creating a personal finance report. But I didn't want this to be a manual process, where I download the bank statements myself, import them into Power BI and continually do this, I figure why not automate it and make things a bit more smart. 
+As a data analyst, the thought occurred to me to start analysing my spending and understand where I can cut down on random spending, if there are any subscriptions that don't need to be there that I have forgotten about, etc. Basically, I want to optimise my outgoings and save where I can. Downloading bank statements manually once a month did not seem appealling to me at all, so thought I'd see if there was a way to do this automatically.
 
 ### Goals
-1. Automate the download and ETL of my banking transactions.
-2. Analyse outgoings data pulled from my banking statements.
-3. Create a database server on a Raspberry Pi that we can query from any device on the network.
-4. Use multiple technologies to extend my knowledge in the fields of software development, database administration/SQL development, Data Engineering and Data Analysis/Business Intelligence (ish)
+1. Automatically pull in my transactions from my bank.
+2. Store the transactions in a private local database. 
+3. Analyse these transactions in BI software and create a report (first Power BI, then Tableau, eventually). 
+4. Learn some more Python and BI!
+
 #### Questions
 * What are the regular outgoings that are consistently occuring at same time every month?
 * What outgoings seem erroneous, that could potentially be marked for cut-down?
@@ -20,7 +21,7 @@ As I look to start properly budgeting and diversifying my investments, it occurr
 * MotherDuck (or will be using in the future)
 * Python
 * GoCardless API
-* Raspberry Pi 4 Model B
+* Raspberry Pi 4
 
 ### GoCardlessSetup
 To get your banking data, you need to basically connect your bank account to GoCardless. I found the process quite tedious to be honest, so I whipped up GoCardlessSetup.py to make the whole process a bit easier (ish) so if I need to come back and go through it again, I don't need to find and follow the API docs again and have all these cURL commands knocking around. 
