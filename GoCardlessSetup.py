@@ -26,6 +26,7 @@ def Step1():
     }
     response = requests.post('https://bankaccountdata.gocardless.com/api/v2/token/new/', headers=headers, json=json_data)
     print (printResponse(response))
+    print ('Take note of the "access" token and the "refresh" token! They are important for literally everything here on out')
 
 def Step2(): 
     bearer = input("Input your bearer token")
@@ -40,6 +41,7 @@ def Step2():
 
     response = requests.get('https://bankaccountdata.gocardless.com/api/v2/institutions/', params=params, headers=headers)
     print (printResponse(response))
+    print ('Take note of the "ID" for your bank, once you find it in the list! The ID is the "Institution ID"!')
 
 def Step3():
     institution_id = input("Institution ID: ")
@@ -62,6 +64,7 @@ def Step3():
 
     response = requests.post('https://bankaccountdata.gocardless.com/api/v2/agreements/enduser/', headers=headers, json=json_data)
     print (printResponse(response))
+    print ('Take note of the "ID" here, it is the "agreement UID"!')
 
 def Step4():
     institution_id = input("Institution ID: ")
@@ -84,6 +87,7 @@ def Step4():
 
     response = requests.post('https://bankaccountdata.gocardless.com/api/v2/requisitions/', headers=headers, json=json_data)
     print (printResponse(response))
+    print ('Take note of the "ID" here, it is the "Requisition ID"!')
 
 def Step5():
     bearer = input("Input your bearer token: ")
@@ -96,6 +100,7 @@ def Step5():
 
     response = requests.get('https://bankaccountdata.gocardless.com/api/v2/requisitions/'+req_id+'/', headers=headers,)
     print (printResponse(response))
+    print ('You now need to follow the "Link" generated in the output, here you can authorise the connection to your bank/account, once done, you are good to go!')
 
 def Step6():
     bearer = input("Input your bearer token: ")
@@ -107,29 +112,37 @@ def Step6():
 
     response = requests.get('https://bankaccountdata.gocardless.com/api/v2/accounts/'+account_id+'/',headers=headers,)
     print (printResponse(response))
+    
 
 
-print("Before coming here, go generate your secrets at GoCardless!")
-print("---MENU---")
-print("1. Get Access Token")
-print("2. Choose a Bank")
-print("3. Create an End User Agreement")
-print("4. Build a Link")
-print("5. List Accounts")
-print("6. Account Details/balances/transactions")
-
-option = input("Pick an option: ")
+def menu():
+    print("\n---MENU---")
+    print("1. Get Access Token")
+    print("2. Choose a Bank")
+    print("3. Create an End User Agreement")
+    print("4. Build a Link")
+    print("5. List Accounts")
+    print("6. Account Details/balances/transactions")
+    print("7. Exit")
 
 while True:
+    menu()
+    option = input("Pick an option: ")
+
     if option == '1':
         Step1()
-    elif option =='2':
-        Step2() 
-    elif option =='3':
-        Step3() 
-    elif option =='4':
-        Step4() 
-    elif option =='5':
-        Step5() 
-    elif option =='6':
-        Step6() 
+    elif option == '2':
+        Step2()
+    elif option == '3':
+        Step3()
+    elif option == '4':
+        Step4()
+    elif option == '5':
+        Step5()
+    elif option == '6':
+        Step6()
+    elif option == '7':
+        print("Exiting...")
+        break
+    else:
+        invalid()
