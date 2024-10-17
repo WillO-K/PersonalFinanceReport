@@ -17,88 +17,47 @@ As I look to start properly budgeting and diversifying my investments, it occurr
 #### Tools
 * Microsoft Power BI
 * MariaDB
-* MotherDuck
+* MotherDuck (or will be using in the future)
 * Python
-* Pandas
 * GoCardless API
 * Raspberry Pi 4 Model B
 
-### Method
-So, obviously, this is no small project. What I am wanting to achieve is a method of automatically and periodically requesting my monthly statement or potentially just any transaction that occurs, performing some basic ETL on it to make it less all over the shop and actually useful data, storing it in a local MariaDB database, then importing this into Power BI to then transform into a report with useful insights about my spending, saving and investing. 
-First thing I need to understand, is how a regular schmuck like myself can communicate with the Lloyds Bank API without having a business account. From what I read, I can use **GoCardless**. Some independent users report that the tokens last a "short while", but a "short while" really means 90 days, which is actually pretty standard; if you've ever used services like Plum, you'll know you need to refresh the link to your account every 90 days, so I really don't see that being a problem. Looking at the quick-start guide, it looks like I need to basically need an API key, institution ID, to then get my bank account details, and then hit a transactions endpoint to get this information. So we have a few scripts to run (which I'll include in the repo and possibly refactor to make it user friendly and more of a menu-based script where you can do it all in 1 go, the quickstart guides use cURL but I'm more of a Python and _Requests_ fella, so I rewrote it to be used in Python, so I could then later refactor as mentioned).
-The traditional JSON output in python is unformatted and awful, so we can use the _json_ library to tidy it up and format it, and after some tweaking and setting up all the keys and details, we have lift-off!
+### GoCardlessSetup
+To get your banking data, you need to basically connect your bank account to GoCardless. I found the process quite tedious to be honest, so I whipped up GoCardlessSetup.py to make the whole process a bit easier (ish) so if I need to come back and go through it again, I don't need to find and follow the API docs again and have all these cURL commands knocking around. 
 
-![image](https://github.com/user-attachments/assets/40c8090a-d6f6-4105-8604-6836dd2f1087)
+GoCardlessSetup.py uses the requests library to basically emulate the cURL requests that GoCardless provide in their developer/quick start documentation, and take you step by step through the process. It's worth having a read of the documenation anyway, so you're familiar with the terminology, but if you're not really super up to speed with cURL and the likes, this makes things a bit easier. 
 
-This is good news. It now means we can access our transactions without having to log on to the banking app or website. We'll tweak and configure this later to work how we need to, for now we'll move on.
+The JSON library helps tidy things up a bit in terms of the output too, so it's not dreadful to read. The script isn't perfect by any means, but it got the job done.
 
-Next I need to store the data somewhere. I can't really have it just floating around the output of Visual Studio Code, so first thing is first, we want to test setting up a local DB and test the script works with that. At the initial time of writing, I went with MySQL server to test, but we'll be using MariaDB when it comes to the Pi. Easy enough to set up, locally. Once we have an instance of that running locally, we'll create a schema and table:
+![image](https://github.com/user-attachments/assets/7f54a600-3199-41ad-b89d-9861ca8090bc)
 
-![image](https://github.com/user-attachments/assets/8b90db71-7094-4f6b-8b7f-bebdfb70cf23)
+### TransactionGrabber
+Once the link to your bank is set up, you're ready to start querying for data. TransactionGrabber.py is meant to run automatically, I have it running as a crob job on a Raspberry Pi at the moment, but will be transitioning it to an actual server at some point in the future (when I can be bothered to set one up). 
 
-Now we have a database, a table for our data and a method of getting the transactions, we need to figure out how to get the JSON output to the database. Python is really cool, in that you can use a _mysql_ library to create a connection to your database. So, we use all the _requests_ code we used previously to hit the endpoint, but we'll tack on some additional code to basically insert it what we get back from the API into the database. I'll include the script used in the repo, but the long and short of it is, we're going to use the _mysql.connector_ library to create a connection to our DB and insert records into the table we've chosen, the _requests_ library to hit the GoCardless endpoint, and the _json_ library to parse the output before inserting into the DB. To test the script, we'll run it without any specific parameters to see if we get anything in:
+The idea behind TransactionGrabber.py is to grab all transactions from the previous day and inserts them into a Maria/MySQL database. It's currently working quite smoothly for me, it's probably not optimal and there will be 100 things obviously wrong on it, to an actual Python Dev, but given that I am not a Python Dev, and the fact it works for what I need it for, I'm not too fussed. 
 
-![image](https://github.com/user-attachments/assets/e50d397e-d27a-412a-97a5-dd0b81afb510)
+### GetNewToken
+Your bearer token expires every 24 hours, and manually refreshing it was not an option because it's a massive PITA, so GetNewToken.py automates the refreshing of the token. Pop in the refresh token, and whack on a cron job for it, and you now have a way to refresh the token every 24 hours. Makes life a bit easier for me, and means I can basically have everything running automatically and quite smoothly (until I need to refresh my connection with the bank every 90 days, but I don't think there's an automatic way of doing this and is pretty much standard for businesses who deal with this too).
 
-So, now we know we've got some data in the DB successfully. This is good news. Next is setting the script to only get transactions from the last day, as we don't want duplicate data in our database. What we'll eventually do is create a cron job for the script when I eventually migrate it over to a Pi so it just runs once a day. To start with, we need to check the GoCardless documentation, to understand how we can limit the transactions we pull to certain date/times:
+### Database
+I'm using a MariaDB to store all my data in currently. It's open source and fairly easy to work with. The table structure looks like this:
 
-![image](https://github.com/user-attachments/assets/c3437625-629e-4759-bf41-c62bf13d7e40)
+![image](https://github.com/user-attachments/assets/58070f55-6241-43dc-bdfc-40f905a1941e)
 
-Seems simple enough. We need to use the datetime library in our Python script then, and then add some parameters to our json_data. And before we forget, I'm going to start this table fresh, so we'll drop all the records from it first, then reintroduce data to it with strict date/time parameters, to ensure there's no overlap or duplicate records being inserted. 
+This is also running on the Raspberry Pi. 
 
-Now that I'm happy my program works, we'll move on to the more complicated (for me) portion of the project. I have a Raspberry Pi 4 Model B I've had for years, just waiting to be used. I won't run through all the technical instructions and tasks I had to do to set this up, so I'll run through it in bullet points quickly.
-* Flashed an SD card with the latest Raspberry Pi OS.
-* Installed MariaDB and phpmysql (for a front end for it in case I need it)
-* Set up MariaDB in a way that I can login and access the database from outside of the Pi without having to RDP on the Pi.
-* Set up the table and it's structure.
-* Set up a Cron job for the script to run at midnight every day.
-
-Having tested the cron job, there were a few kinks to work out:
-* The INSERT statement needed to be INSERT IGNORE so I don't try to insert dupe transactions by mistake (it outputs an error anyway if it does... believe me, I learned the hard way)
-* I forgot that the bearer token only lasts 24 hours, so I had to create an additional script that hits the refresh endpoint with my refresh token, then stores the bearer token that's returned to me.
-* Set the above script to run as a cron job 5 minutes prior to the main script.
-* Modified the main script to use the new token from the additional script.
-* Fixed some dodgy bits around the date functionality.
-
-That's the hardest part of this all pretty much set up, I reckon. It's at this point in the project that I'm slightly adding to the scope of my objectives here; I like the idea of getting my teeth stuck in some more Data Engineering, so what I'd like to do is set up a data warehouse next. I figure what I can do for the ETL process is, instead of making major transformations in Power BI, I set up a MotherDuck data warehouse (they have a free plan that is perfect for what I'd need here), and look to create some sort of pipeline to clean my data, and insert it into the warehouse. Is it pointless? Yes. But the whole point of the project is to practise my current knowledge and develop new knowledge.
-
-According to the MotherDuck documentation, we can use Python to authenticate and connect to our database. So you know what I'm thinking... Another Python cronjob script. 10:20 is when we gather transaction data, 10:30 is when we can run our ETL pipeline and push the clean, useful data into MotherDuck. Especially since MotherDuck has a Power BI-friendly connector too. 
-
-There's no point setting any of this up yet until we have some transformation to perform, though. So, this is what we need to focus on next. Pandas is popular for performing transformations, so we'll use this library. 
-In Python, we need to open a connection to the MariaDB, select the data, perform some transformations and send it on its way to MotherDuck. But what transformations? Let's look at what we need:
-* Creditor name (but we will use the RemittanceInformationUnstructured for this as CreditorName has a lot of NULLS)
-* Amount
-* Booking date (value date exists, but is when the amount is actually taken out, personally I would prefer to know when it is that the money is taken)
-* Transaction code
-* Category (this is a maybe at this point in the transformation, I may leave this to a Power BI transformation as I'm not too sure how we'll be able to categorize it yet, but this will be useful to understand debits that are for savings accounts vs debits that are for costs)
-
-A consideration; Some of the creditor names differ or have numbers on them that we don't really want, so we need to clean the names up. 
-
-Now, setting up the MotherDuck database was relatively straight forward, you can download an exe and use it in PowerShell to connect to your account/database and insert tables and such, so we do so to set up our stucture:
-
-![image](https://github.com/user-attachments/assets/3a3976b0-44b0-4e7d-912a-8a51d8563536)
-
-Now we have the table and basic structure of what we want to see. And we can even see it instantly update in the UI:
-
-![image](https://github.com/user-attachments/assets/a25617c9-52bf-4157-88f2-3b0f7cfa5148)
-
-Now we need to figure out how to connect to the makeshift data warehouse with a Python Script... Which is not a dormant skill I have, so this will be a bit of fiddling around. 
-
-In the meantime, we'll practise our data cleaning in Power BI (because I'm too lazy/busy with other projects to fiddle about with Python/Motherduck currently), so let's import our data and create a model, which looks like this:
+### Exploratory Analysis
+The goal is to eventually get an instance of Motherduck up and running, at which point we'll create a pipeline that does all the ETL we need and ingests it into the Motherduck "data warehouse". But for the time being (as I don't have the time for this right now), we'll do some exploratory analysis on the data we have in the MariaDB, so we'll start by cleaning some of it in Power Query:
 
 ![image](https://github.com/user-attachments/assets/92e21aec-0e7c-4efe-9071-3f963ffe8654)
 
 We'll create a date table too:
 
-![image](https://github.com/user-attachments/assets/4b95d048-fae0-4df3-98e0-07d0ca64855d)
+![image](https://github.com/user-attachments/assets/c589768a-8b6c-4433-992f-bd4bd8983f98)
 
-And we'll (for now) use DAX to categorise transactions based on some conditions:
+And we'll (for now) use DAX to categorise transactions based on some conditions (we'll eventually do all this in either the SQL that queries the DB or just have it done in the pipeline to Motherduck so it keeps the model small):
 
-![image](https://github.com/user-attachments/assets/ca275381-d898-4559-87c9-cfc3f9b60777)
+![image](https://github.com/user-attachments/assets/e76e4d48-ebc1-475b-989d-7ebd0c93183d)
 
-And we'll build a few visuals and measures (not the final version, just playing with some visuals and doing some exploratory analysis:
-![image](https://github.com/user-attachments/assets/0bb7c62e-1a30-478e-89bd-129c34ed6f29)
-
-
-And we've got the rough start of a report coming along!
+TBC
 
