@@ -49,7 +49,7 @@ This is also running on the Raspberry Pi.
 ### Exploratory Analysis
 The goal is to eventually get an instance of Motherduck up and running, at which point we'll create a pipeline that does all the ETL we need and ingests it into the Motherduck "data warehouse". But for the time being (as I don't have the time for this right now), we'll do some exploratory analysis on the data we have in the MariaDB, so we'll start by cleaning some of it in Power Query:
 
-![image](https://github.com/user-attachments/assets/92e21aec-0e7c-4efe-9071-3f963ffe8654)
+![image](https://github.com/user-attachments/assets/e76e4d48-ebc1-475b-989d-7ebd0c93183d)
 
 We'll create a date table too:
 
@@ -57,7 +57,7 @@ We'll create a date table too:
 
 And we'll (for now) use DAX to categorise transactions based on some conditions (we'll eventually do all this in either the SQL that queries the DB or just have it done in the pipeline to Motherduck so it keeps the model small):
 
-![image](https://github.com/user-attachments/assets/e76e4d48-ebc1-475b-989d-7ebd0c93183d)
+![image](https://github.com/user-attachments/assets/78549f29-17cb-4bbe-b23a-aa6796fa4803)
 
 TBC
 
