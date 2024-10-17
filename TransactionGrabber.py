@@ -5,38 +5,42 @@ import mysql.connector
 import json
 from datetime import datetime
 from datetime import timedelta
+import time
 
 def get_bearer_token(token_file):
     try:
         with open(token_file, 'r') as file:
             token = file.read().strip()
         return token
-    except fileNotFound:
+    except FileNotFoundError:
         print("File not found")
         return None
-token_file = 'access_token.txt' #I know it's not very secure, but also I don't care. The database and Pi won't be public/exposed, and also this isn't a professional project.
+token_file = 'yourDirectory/access_token.txt'
 
 bearer_token = get_bearer_token(token_file)
+print(bearer_token)
 
 if not bearer_token:
-    print("Bearer token not available. Don't know why, investigate!")
+    print("Bearer token not available. Investigate!") # This has yet to happen to me so good luck to anyone who encounters this
     exit(1)
 
+# Details to connect to your database
 db_connection = mysql.connector.connect(
-    host="GetYourOwn!",
-    user="GetYourOwn!",
-    password="GetYourOwn!",
-    database="GetYourOwn!"
+    host="[insert host]",
+    user="[insert user]",
+    password="[insert password]",
+    database= "[insert database]"
 )
 
 cursor = db_connection.cursor()
 
 today = datetime.now()
-yesterday = today - timedelta(days=1) 
+yesterday = today - timedelta(days=1)
 date_from = yesterday.strftime('%Y-%m-%d')
 date_to = yesterday.strftime('%Y-%m-%d')
 
-url = f'https://bankaccountdata.gocardless.com/api/v2/accounts/GetYourOwnAccountKey/transactions/?date_from={date_from}&date_to={date_to}'
+url = f'https://bankaccountdata.gocardless.com/api/v2/accounts/[account]/transactions/?date_from={date_from}&date_to={date_to}'
+
 
 headers = {
     'accept': 'application/json',
@@ -46,15 +50,17 @@ headers = {
 }
 
 json_data = {
-    'secret_id': 'GetYourOwn!',
-    'secret_key': 'GetYourOwn!',
+    'secret_id': '[insert secret id]',
+    'secret_key': '[insert secret key]',
 
 }
 
+
+
 response = requests.get(url, headers=headers)
-#I'm printing all of this because it gets output to a log file during the cron job. If something goes wrong, I can just look at the log and troubleshoot from there. 
+print (time.strftime("%Y-%m-%d %H:%M"))
+
 try:
-  #toDo: Add json.dumps here so the output is less of an eyesore and formatted. Not really important right now though. 
     response_json = response.json()
     transactions = response_json.get("transactions", {}).get("booked", [])
 
@@ -62,22 +68,23 @@ try:
     print(f"Found {len(transactions)} transactions.")
 
     if not transactions:
-        print("No transactions found for date range.")
-  
+        print("No transactions found for the given date range.")
+    
     insert_query = """
     INSERT IGNORE INTO lloyds_transactions (transactionId, entryReference, bookingDate, valueDate, amount, currency, creditorName, 
                               remittanceInformationUnstructured, proprietaryBankTransactionCode, internalTransactionId)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
-
+    rowCount = 0
     for transaction in transactions:
+        rowCount = rowCount + 1
         transactionId = transaction.get("transactionId")
-        entryReference = transaction.get("entryReference", None) 
+        entryReference = transaction.get("entryReference", None)  # Optional field, not all transactions seem to have one of these
         bookingDate = transaction.get("bookingDate")
         valueDate = transaction.get("valueDate")
         amount = transaction.get("transactionAmount", {}).get("amount")
         currency = transaction.get("transactionAmount", {}).get("currency")
-        creditorName = transaction.get("creditorName")
+        creditorName = transaction.get("creditorName") # Much to my own annoyance, not all transactions seem to have these either
         remittanceInformationUnstructured = transaction.get("remittanceInformationUnstructured", None)
         proprietaryBankTransactionCode = transaction.get("proprietaryBankTransactionCode", None)
         internalTransactionId = transaction.get("internalTransactionId", None)
@@ -91,7 +98,7 @@ try:
 
     db_connection.commit()
 
-    print(f"Inserted {cursor.rowcount} transactions into the database.")  # toDo: Fix this... this kind of doesn't work as I expected it to right now, I don't think, but it's not significant.
+    print("Transactions found: ", rowCount) # TODO:Not actually too sure this is accurate either in terms of the count that is actually inserted into the db
 
 except ValueError:
     print("Failed to parse JSON response.")
